@@ -1,4 +1,6 @@
-[![Release](https://jitpack.io/v/kroegerama/retrofit-kaiteki.svg)](https://jitpack.io/#kroegerama/retrofit-kaiteki)
+<img height="150" src="logo/logo.png">
+
+[![Release](https://jitpack.io/v/com.kroegerama/retrofit-kaiteki.svg)](https://jitpack.io/#com.kroegerama/retrofit-kaiteki)
 [![Build Status](https://travis-ci.org/kroegerama/retrofit-kaiteki.svg?branch=master)](https://travis-ci.org/kroegerama/retrofit-kaiteki)
 
 # Retrofit Kaiteki
@@ -23,70 +25,66 @@ allprojects {
 
 ```gradle
 dependencies {
-  implementation 'com.kroegerama:retrofit-kaiteki:1.1.1'
+  implementation 'com.kroegerama:retrofit-kaiteki:2.0.0'
 }
 ```
 
 ## Current components
 
-### Debug Interceptor
+#### Retrofit LiveData extension function
+Convert any retrofit call to LiveData (Android Architecture Components).
+
+#### Retrofit DSL
+Invoke your retrofit calls using a simple domain specific language.
+
+#### Debug Interceptor
 Allows you to see outgoing requests and the incoming responses in your **logcat**
 
-### Retry Call Annotation
+#### Retry Call Annotation
 Annotate your retrofit calls and let them automatically be retried.
 Allows to set the retry count per call.
 
-### Cache Call Annotation
+#### Cache Call Annotation
 Annotate your retrofit calls and let them automatically be cached.
 Allows to set a debounce time and a maximum age per call.
 
 - **debounce**: Load from cache and avoid a network call, if the cached value is younger than specified amount of milliseconds. Set to 0 to disable.
 - **maxAge**: Load from cache and enqueue a network call, if the cached value is younger than the specified amount of milliseconds. **onSuccess()** may be called **twice**. Once with cached data and once with the updated data from network. Set to 0 to disable.
 
-## Usage
+## Some examples
 
-### Kotlin
+See [**Wiki**](https://github.com/kroegerama/retrofit-kaiteki/wiki) for more documentation and examples.
+
+### DSL
 
 ```kotlin
-val client = OkHttpClient.Builder()
-
-if (BuildConfig.DEBUG) {
-  client.addNetworkInterceptor(DebugInterceptor)
+myApi.myCall(param).enqueue {
+    onSuccess {
+        Log.d("onSuccess", body().toString())
+        textView.text = body().toString()
+    }
+    onNoSuccess {
+        Log.d("onNoSuccess", body().toString())
+    }
+    onFailure { t ->
+        Log.d("onFailure", "" + t.toString())
+        textView.text = t.toString()
+    }
 }
-
-val retrofit = Retrofit.Builder()
-                .client(client.build())
-                .addCallAdapterFactory(RetryCallAdapterFactory)
-                .addCallAdapterFactory(CacheCallAdapterFactory(DefaultCacheHandler(this)))
-                .addConverterFactory(...)
-                .baseUrl(...)
-                .build()
-
-val api = retrofit.create(MyAPI::class.java)
 ```
 
-### Java
+### LiveData
 
-```java
-OkHttpClient.Builder client = new OkHttpClient.Builder();
-if (BuildConfig.DEBUG) {
-  client.addNetworkInterceptor(DebugInterceptor.INSTANCE);
-}
+```kotlin
+val listing = myApi.myCall(param).createListing()
 
-Retrofit retrofit = new Retrofit.Builder()
-                        .client(client.build())
-                        .addCallAdapterFactory(RetryCallAdapterFactory.INSTANCE)
-                        .addCallAdapterFactory(new CacheCallAdapterFactory(new DefaultCacheHandler(context, DefaultCacheHandler.DEFAULT_DISK_SIZE, DefaultCacheHandler.DEFAULT_MEM_CACHE_ENTRIES)))
-                        .addConverterFactory(...)
-                        .baseUrl(...)
-                        .build();
+val networkStateLiveData = listing.networkState
+val resultLiveData = listing.result
 
-JavaAPI javaAPI = retrofit.create(MyAPI.class);
+listing.retry()
 ```
 
-## Annotate your API
-
-### Kotlin
+### Retry and Cache Annotations
 
 ```kotlin
 interface MyAPI {
@@ -103,8 +101,6 @@ interface MyAPI {
   fun getPostNoCacheNoRetry(@Path("id") id: Int): Call<Post>
 }
 ```
-
-### Java
 
 ```java
 public interface MyAPI {

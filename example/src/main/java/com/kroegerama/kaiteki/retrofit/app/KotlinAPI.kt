@@ -1,7 +1,7 @@
 package com.kroegerama.kaiteki.retrofit.app
 
-import com.kroegerama.kaiteki.retrofit.Cache
-import com.kroegerama.kaiteki.retrofit.Retry
+import com.kroegerama.kaiteki.retrofit.cache.Cache
+import com.kroegerama.kaiteki.retrofit.retry.Retry
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -19,4 +19,7 @@ interface KotlinAPI {
 
     @GET("posts/{id}")
     fun getPostNoCacheNoRetry(@Path("id") id: Int): Call<Post>
+
+    @GET("notExisting")
+    fun getNotExisting(): Call<String>
 }
